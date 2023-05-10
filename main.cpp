@@ -1,262 +1,247 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
-bool isValidMove(int startRow, int startCol, int endRow, int endCol);
-void initBoard();
-void printBoard();
-bool movePiece(int startRow, int startCol, int endRow, int endCol);
+// Define the chess board as a 2D array
+char board[8][8] = {
+    {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+    {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+    {' ', '.', ' ', '.', ' ', '.', ' ', '.'},
+    {'.', ' ', '.', ' ', '.', ' ', '.', ' '},
+    {' ', '.', ' ', '.', ' ', '.', ' ', '.'},
+    {'.', ' ', '.', ' ', '.', ' ', '.', ' '},
+    {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+    {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+};
 
+// Map the column letters to their corresponding array indices
+unordered_map<char, int> col_map = { {'a', 0}, {'b', 1}, {'c', 2}, {'d', 3},
+                                    {'e', 4}, {'f', 5}, {'g', 6}, {'h', 7} };
 
-// Define the chess board as a 2D vector of characters
-vector<vector<char>> board(8, vector<char>(8, ' '));
-
-
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " input_file output_file" << std::endl;
-        return 1;
-    }
-
-    std::string input_file_name = argv[1];
-    std::string output_file_name = argv[2];
-
-    std::ifstream input_file("/Users/student/CLionProjects/Chess/inputfile.txt");
-    if (!input_file) {
-        std::cerr << "Error: could not open input file '" << input_file_name << "'" << std::endl;
-        return 1;
-    }
-    std::string move_str;
-    while (input_file >> move_str) {
-        bool success = movePiece(move_str[0],move_str[1],move_str[2],move_str[3]);
-        if (!success) {
-            std::cerr << "Error: invalid move '" << move_str << "'" << std::endl;
-            return 1;
+// Function to print the current state of the chess board
+void print_board() {
+    cout << "   a  b  c  d  e  f  g  h\n";
+    for (int i = 0; i < 8; i++) {
+        cout << " " << 8 - i << " ";
+        for (int j = 0; j < 8; j++) {
+            cout << "|" << board[i][j] << "|";
         }
+        cout << " " << 8 - i << endl;
     }
+    cout << "   a  b  c  d  e  f  g  h\n";
+}
 
-    printBoard();
+// Function to move a chess piece
+void move_piece(string move) {
+    int start_row = 8 - (move[1] - '0');
+    int start_col = col_map[move[0]];
+    int end_row = 8 - (move[3] - '0');
+    int end_col = col_map[move[2]];
 
-    return 0;
+    board[end_row][end_col] = board[start_row][start_col];
+    board[start_row][start_col] = ' ';
 }
 
 
-// Function to initialize the chess board with all the pieces
-void initBoard() {
-    // Place the pawns
-    for (int col = 0; col < 8; col++) {
-        board[1][col] = 'P';
-        board[6][col] = 'p';
-    }
-
-    // Place the rooks
-    board[0][0] = 'R';
-    board[0][7] = 'R';
-    board[7][0] = 'r';
-    board[7][7] = 'r';
-
-    // Place the knights
-    board[0][1] = 'N';
-    board[0][6] = 'N';
-    board[7][1] = 'n';
-    board[7][6] = 'n';
-
-    // Place the bishops
-    board[0][2] = 'B';
-    board[0][5] = 'B';
-    board[7][2] = 'b';
-    board[7][5] = 'b';
-
-    // Place the queens
-    board[0][3] = 'Q';
-    board[7][3] = 'q';
-
-    // Place the kings
-    board[0][4] = 'K';
-    board[7][4] = 'k';
-}
-
-// Function to print the chess board
- void printBoard() {
-    cout << "  A B C D E F G H\n";
-    for (int row = 0; row < 8; row++) {
-        cout << 8 - row << " ";
-        for (int col = 0; col < 8; col++) {
-            cout << board[row][col] << " ";
-        }
-        cout << 8 - row << endl;
-    }
-    cout << "  A B C D E F G H\n";
-}
-
-// Function to check if a move is valid
-bool isValidMove(int startRow, int startCol, int endRow, int endCol) {
-    // Make sure the start and end positions are on the board
-    if (startRow < 0 || startRow > 7 || startCol < 0 || startCol > 7 ||
-        endRow < 0 || endRow > 7 || endCol < 0 || endCol > 7) {
+bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, bool whiteTurn) {
+    // Check if start and end positions are within the board boundaries
+    if (startX < 0 || startX > 7 || startY < 0 || startY > 7 || endX < 0 || endX > 7 || endY < 0 || endY > 7) {
         return false;
     }
 
-    // Make sure there is a piece at the start position
-    char piece = board[startRow][startCol];
-    if (piece == ' ') {
+    // Check if the starting piece is of the same color as the current turn
+    if ((whiteTurn && islower(board[startX][startY])) || (!whiteTurn && isupper(board[startX][startY]))) {
         return false;
     }
 
-    // Determine the color of the piece
-    bool isWhite = (piece >= 'A' && piece <= 'Z');
+    // Check if the end position contains a piece of the same color as the starting piece
+    if ((whiteTurn && isupper(board[endX][endY])) || (!whiteTurn && islower(board[endX][endY]))) {
+        return false;
+    }
 
-    // Check if the move is valid for the piece
-    switch (toupper(piece)) {
-        case 'P': {
-            // Check if the move is valid for a pawn
-            int dir = (isWhite ? -1 : 1);
-            if (endCol == startCol && board[endRow][endCol] == ' ' &&
-                (endRow == startRow + dir || (startRow == 6 && endRow == startRow + 2 * dir && board[startRow + dir][endCol] == ' '))) {
-                // Pawn is moving forward one or two spaces
-                return true;
-            } else if (abs(endCol - startCol) == 1 && board[endRow][endCol] != ' ' &&
-                       ((isWhite && endRow == startRow - 1) || (!isWhite && endRow == startRow + 1))) {
-                // Pawn is capturing diagonally
-                return true;
-            } else {
+    // Check if the piece is moving in the correct direction
+    if (tolower(board[startX][startY]) == 'p') {
+        // Pawn
+        int forwardDir = whiteTurn ? -1 : 1;
+        int startRow = whiteTurn ? 6 : 1;
+        int endRow = whiteTurn ? 0 : 7;
+        int maxForwardDist = startX == startRow ? 2 : 1;
+        if (startY == endY) {
+            // Moving forward
+            int forwardDist = endX - startX;
+            if (forwardDist * forwardDir <= 0 || forwardDist * forwardDir > maxForwardDist) {
                 return false;
             }
-            break;
+            if (board[endX][endY] != ' ') {
+                return false;
+            }
+            if (endX == endRow) {
+                // Promotion
+                return (tolower(board[startX][startY]) == 'p');
+            }
         }
-        case 'R': {
-            // Check if the move is valid for a rook
-            if (startRow == endRow) {
-                // Rook is moving horizontally
-                int minCol = min(startCol, endCol);
-                int maxCol = max(startCol, endCol);
-                for (int col = minCol + 1; col < maxCol; col++) {
-                    if (board[startRow][col] != ' ') {
-                        return false;
-                    }
-                }
-                return true;
-            } else if (startCol == endCol) {
-                // Rook is moving vertically
-                int minRow = min(startRow, endRow);
-                int maxRow = max(startRow, endRow);
-                for (int row = minRow + 1; row < maxRow; row++) {
-                    if (board[row][startCol] != ' ') {
-                        return false;
-                    }
-                }
-                return true;
-            } else {
+        else {
+            // Capturing
+            if (abs(startY - endY) != 1 || endX != startX + forwardDir) {
                 return false;
             }
-            break;
+            if (board[endX][endY] == ' ' || (whiteTurn && islower(board[endX][endY])) || (!whiteTurn && isupper(board[endX][endY]))) {
+                return false;
+            }
         }
-        case 'N': {
-            // Check if the move is valid for a knight
-            int dRow = abs(endRow - startRow);
-            int dCol = abs(endCol - startCol);
-            if ((dRow == 1 && dCol == 2) || (dRow == 2 && dCol == 1)) {
-                return true;
-            } else {
-                return false;
-            }
-            break;
+    }
+    else if (tolower(board[startX][startY]) == 'r') {
+        // Rook
+        if (startX != endX && startY != endY) {
+            return false;
         }
-        case 'B': {
-            // Check if the move is valid for a bishop
-            if (abs(endRow - startRow) != abs(endCol - startCol)) {
-                return false;
-            }
-            // Bishop is moving diagonally
-            int minRow = min(startRow, endRow);
-            int maxRow = max(startRow, endRow);
-            int minCol = min(startCol, endCol);
-            int maxCol = max(startCol, endCol);
-            int dRow = (endRow < startRow ? -1 : 1);
-            int dCol = (endCol < startCol ? -1 : 1);
-            for (int i = 1; i < maxRow - minRow; i++) {
-                if (board[minRow + i * dRow][minCol + i * dCol] != ' ') {
+        if (startX == endX) {
+            int step = (startY < endY) ? 1 : -1;
+            for (int j = startY + step; j != endY; j += step) {
+                if (board[startX][j] != ' ') {
                     return false;
                 }
             }
-            return true;
-            break;
         }
-        case 'Q': {
-            // Check if the move is valid for a queen
-            if (startRow == endRow) {
-                // Queen is moving horizontally
-                int minCol = min(startCol, endCol);
-                int maxCol = max(startCol, endCol);
-                for (int col = minCol + 1; col < maxCol; col++) {
-                    if (board[startRow][col] != ' ') {
-                        return false;
-                    }
+        else {
+            int step = (startX < endX) ? 1 : -1;
+            for (int i = startX + step; i != endX; i += step) {
+                if (board[i][startY] != ' ') {
+                    return false;
                 }
-                return true;
-            } else if (startCol == endCol) {
-                // Queen is moving vertically
-                int minRow = min(startRow, endRow);
-                int maxRow = max(startRow, endRow);
-                for (int row = minRow + 1; row < maxRow; row++) {
-                    if (board[row][startCol] != ' ') {
-                        return false;
-                    }
-                }
-                return true;
-            } else if (abs(endRow - startRow) == abs(endCol - startCol)) {
-                // Queen is moving diagonally
-                int minRow = min(startRow, endRow);
-                int maxRow = max(startRow, endRow);
-                int minCol = min(startCol, endCol);
-                int maxCol = max(startCol, endCol);
-                int dRow = (endRow < startRow ? -1 : 1);
-                int dCol = (endCol < startCol ? -1 : 1);
-                for (int i = 1; i < maxRow - minRow; i++) {
-                    if (board[minRow + i * dRow][minCol + i * dCol] != ' ') {
-                        return false;
-                    }
-                }
-                return true;
-            } else {
-                return false;
             }
-            break;
-        }
-        case 'K': {
-            // Check if the move is valid for a king
-            int dRow = abs(endRow - startRow);
-            int dCol = abs(endCol - startCol);
-            if ((dRow == 1 && dCol == 0) || (dRow == 0 && dCol == 1) || (dRow == 1 && dCol == 1)) {
-                return true;
-            } else {
-                return false;
-            }
-            break;
-        }
-        default: {
-            // Unknown piece type
-            return false;
-            break;
         }
     }
+    else if (tolower(board[startX][startY]) == 'n') {
+        // Knight
+        int dx = abs(endX - startX);
+        int dy = abs(endY - startY);
+        if (!((dx == 2 && dy == 1)
+            && (dx == 1 && dy == 2))) {
+            return false;
+        }
+    }
+    else if (tolower(board[startX][startY]) == 'b') {
+        // Bishop
+        if (abs(startX - endX) != abs(startY - endY)) {
+            return false;
+        }
+        int xstep = (startX < endX) ? 1 : -1;
+        int ystep = (startY < endY) ? 1 : -1;
+        int j = startY + ystep;
+        for (int i = startX + xstep; i != endX; i += xstep) {
+            if (board[i][j] != ' ') {
+                return false;
+            }
+            j += ystep;
+        }
+    }
+    else if (tolower(board[startX][startY]) == 'q') {
+        // Queen
+        if (startX == endX || startY == endY) {
+            // Rook move
+            int step;
+            if (startX == endX) {
+                step = (startY < endY) ? 1 : -1;
+                for (int j = startY + step; j != endY; j += step) {
+                    if (board[startX][j] != ' ') {
+                        return false;
+                    }
+                }
+            }
+            else {
+                step = (startX < endX) ? 1 : -1;
+                for (int i = startX + step; i != endX; i += step) {
+                    if (board[i][startY] != ' ') {
+                        return false;
+                    }
+                }
+            }
+        }
+        else if (abs(startX - endX) == abs(startY - endY)) {
+            // Bishop move
+            int xstep = (startX < endX) ? 1 : -1;
+            int ystep = (startY < endY) ? 1 : -1;
+            int j = startY + ystep;
+            for (int i = startX + xstep; i != endX; i += xstep) {
+                if (board[i][j] != ' ') {
+                    return false;
+                }
+                j += ystep;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+    else if (tolower(board[startX][startY]) == 'k') {
+        // King
+        int dx = abs(endX - startX);
+        int dy = abs(endY - startY);
+        if (!((dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 1 && dy == 1))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
+int main() {
+    string move;
 
-bool movePiece(int startRow, int startCol, int endRow, int endCol) {
-    // Check if the move is valid
-    if (!isValidMove(startRow, startCol, endRow, endCol)) {
-        cout << "Invalid move." << endl;
-        return false;
+    // Print the initial state of the chess board
+    print_board();
+
+    bool whiteTurn = true;
+
+    while (true) {
+        // Print the current turn
+        if (whiteTurn) {
+            cout << "White's turn.\n";
+        }
+        else {
+            cout << "Black's turn.\n";
+        }
+
+        // Prompt for and read the move
+        cout << "Enter your move (e.g. e2e4): ";
+        getline(cin, move);
+
+        // Check for valid input
+        if (move.length() != 4) {
+            cout << "Invalid move: incorrect length.\n";
+            continue;
+        }
+        if (col_map.count(move[0]) == 0 || col_map.count(move[2]) == 0) {
+            cout << "Invalid move: invalid column.\n";
+            continue;
+        }
+        if (move[1] < '1' || move[1] > '8' || move[3] < '1' || move[3] > '8') {
+            cout << "Invalid move: invalid row.\n";
+            continue;
+        }
+
+        // Convert the move to start and end positions
+        int startX = move[0] - 'a';
+        int startY = move[1] - '1';
+        int endX = move[2] - 'a';
+        int endY = move[3] - '1';
+
+        // Check if the move is valid
+        if (!isValidMove(board, startX, startY, endX, endY, whiteTurn)) {
+            cout << "Invalid move: not a valid move.\n";
+            continue;
+        }
+
+        // Move the piece and print the updated board
+        move_piece(move);
+        print_board();
+
+        // Switch the turn
+        whiteTurn = !whiteTurn;
     }
 
-    // Move the piece to the new position
-    char piece = board[startRow][startCol];
-    board[startRow][startCol] = ' ';
-    board[endRow][endCol] = piece;
-    return true;
+    return 0;
 }

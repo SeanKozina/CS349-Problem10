@@ -1,2 +1,2 @@
 # CS349-Problem10
-Highest Card Hand for poker
+Create your own problem: Display the chess board after the moves that a given by the input file.

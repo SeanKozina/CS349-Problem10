@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <unordered_map>
 
@@ -46,6 +47,7 @@ void move_piece(string move) {
 
 
 bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, bool whiteTurn) {
+    cout << startX << startY << endX << endY << endl;
     // Check if start and end positions are within the board boundaries
     if (startX < 0 || startX > 7 || startY < 0 || startY > 7 || endX < 0 || endX > 7 || endY < 0 || endY > 7) {
         return false;
@@ -115,11 +117,15 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
         }
     }
     else if (tolower(board[startX][startY]) == 'n') {
-        // Knight
+        // Knight logic
         int dx = abs(endX - startX);
         int dy = abs(endY - startY);
-        if (!((dx == 2 && dy == 1)
-            && (dx == 1 && dy == 2))) {
+        if ((dx == 2 && dy == 1) || (dx == 1 && dy == 2)) {
+            // The knight move is valid
+            return true;
+        }
+        else {
+            // The knight move is invalid
             return false;
         }
     }
@@ -187,16 +193,21 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
     return true;
 }
 
-
 int main() {
+    string input_file_name;
+    cout << "Enter input file name: ";
+    cin >> input_file_name;
+
+    ifstream input_file(input_file_name);
+    if (!input_file.is_open()) {
+        cout << "Unable to open input file.\n";
+        return 1;
+    }
+
     string move;
-
-    // Print the initial state of the chess board
-    print_board();
-
     bool whiteTurn = true;
 
-    while (true) {
+    while (getline(input_file, move)) {
         // Print the current turn
         if (whiteTurn) {
             cout << "White's turn.\n";
@@ -204,10 +215,6 @@ int main() {
         else {
             cout << "Black's turn.\n";
         }
-
-        // Prompt for and read the move
-        cout << "Enter your move (e.g. e2e4): ";
-        getline(cin, move);
 
         // Check for valid input
         if (move.length() != 4) {
@@ -235,13 +242,16 @@ int main() {
             continue;
         }
 
-        // Move the piece and print the updated board
+        // Move the piece
         move_piece(move);
-        print_board();
 
         // Switch the turn
         whiteTurn = !whiteTurn;
+        print_board();
     }
+
+    // Print the final board
+    print_board();
 
     return 0;
 }

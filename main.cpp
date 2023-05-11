@@ -45,9 +45,8 @@ void move_piece(string move) {
     board[start_row][start_col] = ' ';
 }
 
-
+/*
 bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, bool whiteTurn) {
-    cout << " him " << startX + 1 << startY + 1<<  endX + 1 << endY + 1<<endl << endl;
     // Check if start and end positions are within the board boundaries
     if (startX < 0 || startX > 7 || startY < 0 || startY > 7 || endX < 0 || endX > 7 || endY < 0 || endY > 7) {
         return false;
@@ -64,7 +63,6 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
     }
 
     // Check if the piece is moving in the correct direction
-    cout << startX << startY << ' s ' << endl << endl;
     if (tolower(board[startX][startY]) == 'p') {
         // Pawn
         int forwardDir = whiteTurn ? -1 : 1;
@@ -189,6 +187,8 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
     }
     return true;
 }
+*/
+
 
 int main() {
     string input_file_name;
@@ -233,11 +233,14 @@ int main() {
         int endX = move[2] - 'a';
         int endY = move[3] - '1';
 
+        /*
         // Check if the move is valid
         if (!isValidMove(board, startX, startY, endX, endY, whiteTurn)) {
             cout << "Invalid move: not a valid move.\n";
             continue;
         }
+        */
+
 
         // Move the piece
         move_piece(move);

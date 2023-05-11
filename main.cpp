@@ -23,7 +23,7 @@ unordered_map<char, int> col_map = { {'a', 0}, {'b', 1}, {'c', 2}, {'d', 3},
 
 // Function to print the current state of the chess board
 void print_board() {
-    cout << "   a  b  c  d  e  f  g  h\n";
+    cout << "    a  b  c  d  e  f  g  h\n";
     for (int i = 0; i < 8; i++) {
         cout << " " << 8 - i << " ";
         for (int j = 0; j < 8; j++) {
@@ -31,7 +31,7 @@ void print_board() {
         }
         cout << " " << 8 - i << endl;
     }
-    cout << "   a  b  c  d  e  f  g  h\n";
+    cout << "    a  b  c  d  e  f  g  h\n";
 }
 
 // Function to move a chess piece
@@ -190,14 +190,24 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
 */
 
 
-int main() {
-    string input_file_name;
-    cout << "Enter input file name: ";
-    cin >> input_file_name;
+int main(int argc, char* argv[]) {
+    // Check for correct number of arguments
+    if (argc != 3) {
+        cout << "Usage: " << argv[0] << " <input_file> <output_file>\n";
+        return 1;
+    }
 
-    ifstream input_file(input_file_name);
+    // Open input file
+    ifstream input_file(argv[1]);
     if (!input_file.is_open()) {
         cout << "Unable to open input file.\n";
+        return 1;
+    }
+
+    // Open output file
+    ofstream output_file(argv[2]);
+    if (!output_file.is_open()) {
+        cout << "Unable to open output file.\n";
         return 1;
     }
 
@@ -206,24 +216,26 @@ int main() {
 
     while (getline(input_file, move)) {
         // Print the current turn
+        /*
         if (whiteTurn) {
-            cout << "White's turn.\n";
+            output_file << "White's turn.\n";
         }
         else {
-            cout << "Black's turn.\n";
+            output_file << "Black's turn.\n";
         }
+        */
 
         // Check for valid input
         if (move.length() != 4) {
-            cout << "Invalid move: incorrect length.\n";
+            output_file << "Invalid move: incorrect length.\n";
             continue;
         }
         if (col_map.count(move[0]) == 0 || col_map.count(move[2]) == 0) {
-            cout << "Invalid move: invalid column.\n";
+            output_file << "Invalid move: invalid column.\n";
             continue;
         }
         if (move[1] < '1' || move[1] > '8' || move[3] < '1' || move[3] > '8') {
-            cout << "Invalid move: invalid row.\n";
+            output_file << "Invalid move: invalid row.\n";
             continue;
         }
 
@@ -236,22 +248,32 @@ int main() {
         /*
         // Check if the move is valid
         if (!isValidMove(board, startX, startY, endX, endY, whiteTurn)) {
-            cout << "Invalid move: not a valid move.\n";
+            output_file << "Invalid move: not a valid move.\n";
             continue;
         }
         */
-
 
         // Move the piece
         move_piece(move);
 
         // Switch the turn
         whiteTurn = !whiteTurn;
-        print_board();
     }
-
+    output_file << "    a  b  c  d  e  f  g  h\n";
+    for (int i = 0; i < 8; i++) {
+        output_file << " " << 8 - i << " ";
+        for (int j = 0; j < 8; j++) {
+            output_file << "|" << board[i][j] << "|";
+        }
+        output_file << " " << 8 - i << endl;
+    }
+    output_file << "    a  b  c  d  e  f  g  h\n";
     // Print the final board
-    print_board();
+    //print_board();
+
+    // Close input and output files
+    input_file.close();
+    output_file.close();
 
     return 0;
 }

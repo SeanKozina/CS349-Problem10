@@ -47,7 +47,7 @@ void move_piece(string move) {
 
 
 bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, bool whiteTurn) {
-    cout << startX << startY << endX << endY << endl;
+    cout << " him " << startX + 1 << startY + 1<<  endX + 1 << endY + 1<<endl << endl;
     // Check if start and end positions are within the board boundaries
     if (startX < 0 || startX > 7 || startY < 0 || startY > 7 || endX < 0 || endX > 7 || endY < 0 || endY > 7) {
         return false;
@@ -64,6 +64,7 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
     }
 
     // Check if the piece is moving in the correct direction
+    cout << startX << startY << ' s ' << endl << endl;
     if (tolower(board[startX][startY]) == 'p') {
         // Pawn
         int forwardDir = whiteTurn ? -1 : 1;
@@ -120,12 +121,8 @@ bool isValidMove(char board[8][8], int startX, int startY, int endX, int endY, b
         // Knight logic
         int dx = abs(endX - startX);
         int dy = abs(endY - startY);
-        if ((dx == 2 && dy == 1) || (dx == 1 && dy == 2)) {
-            // The knight move is valid
-            return true;
-        }
-        else {
-            // The knight move is invalid
+        cout << "dx = " << dx << ", dy = " << dy << endl;
+        if (!(dx == 2 && dy == 1) || !(dx == 1 && dy == 2)) {
             return false;
         }
     }
